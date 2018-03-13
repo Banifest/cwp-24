@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+
+    <script type="text/javascript">
+        const socket = io.connect('/');
+        let currency = "USD";
+        function btc()
+        {
+            $('form').submit(() =>
+            {
+                socket.emit('btc', $('#m').val())
+            });
+        }
+        function getCurrency()
+        {
+            $('form').submit(() =>
+            {
+                socket.emit('stop', null);
+                socket.emit('currency', {curr: $('#curr').val(), time: $('#time').val()});
+            });
+        }
+        
+        socket.on('btc', information =>
+        {
+            console.log(information);
+            $('#curr_now').text(information["symbol"]);
+            $('#buy').text(information["buy"]);
+            $('#last').text(information["last"]);
+            $('#sell').text(information["sell"]);
+        });
+
+        socket.on('lol', data =>
+        {
+            console.log(data);
+        })
+    </script>
+    <meta charset="UTF-8">
+    <title>Cwp-24</title>
+</head>
+<body>
+    <form>
+        <input type="text" id="curr" name="get"><br>
+        <input type="text" id="time" name="get"><br>
+        <button onclick="getCurrency()">Get currency</button>
+    </form>
+    <br><br><br>
+    <div>
+        Currency: <li id="curr_now"></li>
+        Buy <li id="buy"></li>
+        Last <li id="last"></li>
+        Sell <li id="sell"></li>
+    </div>
+    <form>
+        <input type="text" id="m" name="m"><br>
+        <button onclick="btc()">Press</button>
+    </form>
+</body>
+</html>
