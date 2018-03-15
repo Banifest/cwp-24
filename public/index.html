@@ -5,24 +5,14 @@
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
 
     <script type="text/javascript">
-        const socket = io.connect('/');
+        const socket = io.connect('http://localhost:3010/');
         let currency = "USD";
-        function btc()
-        {
-            $('form').submit(() =>
-            {
-                socket.emit('btc', $('#m').val())
-            });
-        }
         function getCurrency()
         {
-            $('form').submit(() =>
-            {
-                socket.emit('stop', null);
-                socket.emit('currency', {curr: $('#curr').val(), time: $('#time').val()});
-            });
+            socket.emit('stop', null);
+            socket.emit('currency', {curr: $('#curr').val(), time: $('#time').val()});
         }
-        
+
         socket.on('btc', information =>
         {
             console.log(information);
@@ -32,20 +22,33 @@
             $('#sell').text(information["sell"]);
         });
 
-        socket.on('lol', data =>
+        socket.on('buy', (msg) =>
         {
-            console.log(data);
-        })
+            $('#divBuy').append($('<li>').text(msg));
+        });
+
+        socket.on('sell', (msg) =>
+        {
+            $('#divSell').append($('<li>').text(msg));
+        });
+
+        function sendBuy()
+        {
+            socket.emit('getBuy', $('#buyText').val())
+        }
+
+        function sendSell()
+        {
+            socket.emit('getSell', $('#sellText').val())
+        }
     </script>
     <meta charset="UTF-8">
     <title>Cwp-24</title>
 </head>
 <body>
-    <form>
-        <input type="text" id="curr" name="get"><br>
-        <input type="text" id="time" name="get"><br>
-        <button onclick="getCurrency()">Get currency</button>
-    </form>
+    <input type="text" id="curr" name="get"><br>
+    <input type="text" id="time" name="get"><br>
+    <button onclick="getCurrency()">Get currency</button>
     <br><br><br>
     <div>
         Currency: <li id="curr_now"></li>
@@ -53,9 +56,19 @@
         Last <li id="last"></li>
         Sell <li id="sell"></li>
     </div>
-    <form>
-        <input type="text" id="m" name="m"><br>
-        <button onclick="btc()">Press</button>
-    </form>
+
+    <div id="divBuy">
+        BUY
+        <br>
+        <input type="text" id="buyText">
+    </div>
+    <button onclick="sendBuy()">Send in buy chat</button>
+
+    <div id="divSell">
+        SELL
+        <br>
+        <input type="text" id="sellText">
+    </div>
+    <button onclick="sendSell()">Send in sell chat</button>
 </body>
 </html>

@@ -2,8 +2,6 @@ const express = require('express');
 const axios = require('axios');
 const http = require('http');
 
-let nowInterval = null;
-
 async function main()
 {
     const app = express();
@@ -13,28 +11,43 @@ async function main()
     app.use(require('body-parser').urlencoded({extended: true}));
     app.use(express.static('public'));
 
-    io.on('connection', async socket =>
+    io.sockets.on('connection', async socket =>
     {
         let i = 1;
+        let currency = "USD";
+        let nowInterval = null;
+        let time = 10000000;
+        let mySock = socket;
+        console.log(socket.id);
         socket.on('stop', (data) =>
         {
             clearInterval(nowInterval);
         });
 
-        socket.on('currency', function (data)
+        socket.on('currency', async function(data)
         {
             console.log(data);
-            if(data.time <= 1000)
-            {
-                data.time = 1000
-            }
+            data.time < 1000 ? data.time = 1000 : null;
+
+            currency = data.curr;
+            time = data.time;
+
             nowInterval = setInterval(async () =>
             {
-                socket.emit('lol', i++);
-                socket.emit('btc', (await axios.get('https://blockchain.info/en/ticker')).data[data.curr])
-            }, data.time)
+                socket.emit('btc', (await axios.get('https://blockchain.info/en/ticker')).data[currency])
+            }
+                , time);
         });
-        //setInterval(() => socket.emit('lol', i++), 1000);
+
+        socket.on('getBuy', async (msg) =>
+        {
+            io.emit('buy', msg);
+        });
+
+        socket.on('getSell', async (msg) =>
+        {
+            io.emit('sell', msg);
+        });
     });
 
     server.listen(3010, ()=>
@@ -42,5 +55,4 @@ async function main()
         console.log('Example app listening on port 3010!');
     });
 }
-
 main();
